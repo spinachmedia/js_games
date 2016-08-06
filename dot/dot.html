@@ -1,0 +1,104 @@
+<!DOCTYPE html> 
+<html lang =" ja"> 
+<head>
+    <style>
+        body{
+            padding:20px;
+        }
+        #canvas {
+            border: solid 1px #666;
+        }
+    </style>
+    
+</head>
+<body onLoad="main()">
+    初速：<input id="speed" type="text" value="3"><br>
+    打ち出す角度：<input id="angle" type="text" value="300"><br><br>
+    <canvas id="canvas" width="500" height="400"></canvas>
+</body>
+<script>
+        function main(){
+            
+            var canvas = document.getElementById("canvas");
+            var ctx = canvas.getContext('2d');
+            
+            var dotList = [];
+            
+            var dot_proto = {
+                size: 5,
+                gravity: 0.05,
+                update : function(){
+                    this.vy += this.gravity;
+                    this.x += this.vx;
+                    this.y += this.vy;
+                },
+                draw: function(){
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.arc(this.x,
+                            this.y,
+                            this.size,
+                            0,
+                            Math.PI*2,
+                            false);
+                    ctx.fill();
+                }
+            };
+            
+            //クリックした時の処理
+            var timer = null;
+            canvas.addEventListener('click',function(e){
+                var x = e.pageX - canvas.offsetLeft;
+                var y = e.pageY - canvas.offsetTop;
+                var angle = document.getElementById('angle').value;
+                var speed = document.getElementById('speed').value;
+                createDot(x,y,speed,angle);
+                clearInterval(timer);
+                timer = setInterval(function(){
+                    drawDot();
+                    updateDot();
+                }, 1000/60);
+            });
+            
+            function createDot(x,y,speed,angle){
+                var color = 'rgb(92, 255, 217)';
+                for ( var i = 0;i < 1;i++ ){
+                    var dot = Object.create(dot_proto);
+                    dot.x = x;
+                    dot.y = y;
+                    //X座標の追加量
+                    dot.vx = Math.cos(angle*Math.PI/180) * speed;
+                    //Y座標の追加量
+                    dot.vy = Math.sin(angle*Math.PI/180) * speed;
+                    dot.color = color;
+                    dotList.push(dot);
+                }
+            };
+            function rand(min,max){
+                return (Math.random() * (max-min) + min);
+            }
+            function drawDot(){
+                ctx.clearRect(0,0,canvas.width,canvas.height);
+                dotList.forEach(function(dot){
+                    dot.draw();
+                });
+            }
+            function updateDot(){
+                dotList.forEach(function(dot,i){
+                    dot.update();
+                    if(
+                        dot.size < 0.05
+                        || dot.x < 0
+                        || dot.x > canvas.width
+                        || dot.y > canvas.height
+                    ){
+                        dotList.slice(i,1);
+                    }
+                });
+            }
+            
+            
+            
+        }
+    </script>
+</html>
